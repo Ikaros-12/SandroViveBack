@@ -1,3 +1,5 @@
+# EN MODELS VAN LAS CLASES
+
 from django.db import models
 
 from django.contrib.auth.hashers import make_password, check_password  # Importa make_password y check_password

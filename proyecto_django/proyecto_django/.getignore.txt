@@ -1,0 +1,10 @@
+# Ignorar archivos de caché
+__pycache__/
+*.pyc
+
+# Ignorar la base de datos SQLite
+db.sqlite3
+
+# Ignorar directorios generados por IDEs o editores
+.idea/
+.vscode/

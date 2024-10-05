@@ -7,7 +7,7 @@ from app_django.models import Categoria, Producto, Provincia, Localidad, Usuario
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
-        fields = ('id','nombre','descripcion','activo')
+        fields = ('id','nombre','descripcion','activo', 'subcategorias')
 
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
