@@ -1,5 +1,9 @@
 from django.shortcuts import render
 
+from rest_framework.decorators import api_view #consultas
+from django.db import connection
+from rest_framework.response import Response
+
 from django.views.decorators.csrf import csrf_exempt
 
 from django.http import JsonResponse, HttpResponse
@@ -239,3 +243,77 @@ def localidades_por_provincia(request, provincia_id):
     localidades = get_list_or_404(Localidad, provincia_id=provincia_id)
     localidades_data = [{'id': loc.id, 'descripcion': loc.descripcion} for loc in localidades]
     return JsonResponse(localidades_data, safe=False)
+
+
+@api_view(['POST']) # logica para generar los informes (informe devoluciones)
+def informe_devoluciones_fecha_desde_hasta_raw(request):
+    print("Llamada a la API")
+    desde = request.data.get('desde')
+    hasta = request.data.get('hasta')
+
+    query = '''
+        SELECT 
+            p.fecha_creacion,
+            p.id AS pedido_id,
+            p.total
+        FROM 
+            app_django_pedido p
+        WHERE 
+            p.fecha_creacion BETWEEN %s AND %s
+        GROUP BY 
+            p.fecha_creacion, p.id, p.total
+        ORDER BY 
+            p.fecha_creacion;
+    '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, [desde, hasta])
+        rows = cursor.fetchall()
+        columns = [col[0] for col in cursor.description]
+        results = []
+        for row in rows:
+            row_dict = {}
+            for idx, col in enumerate(columns):
+                row_dict[col] = row[idx]
+            results.append(row_dict)
+
+    return Response(results)
+
+
+@api_view(['POST']) # informes
+def informe_menores_ventas_fecha_desde_hasta_raw(request):
+    print("Llamada a la API")
+    desde = request.data.get('desde')
+    hasta = request.data.get('hasta')
+
+    query = '''
+        SELECT 
+            pr.id AS producto_id, 
+            pr.nombre AS producto_nombre,
+            COALESCE(SUM(pp.cantidad), 0) AS total_vendido  
+        FROM 
+            app_django_producto pr
+        LEFT JOIN 
+            app_django_pedido_producto pp ON pr.id = pp.producto_id
+        LEFT JOIN 
+            app_django_pedido p ON pp.pedido_id = p.id AND p.fecha_entregada BETWEEN %s AND %s
+        GROUP BY 
+            pr.id, pr.nombre
+        ORDER BY 
+            total_vendido ASC;
+
+            '''
+        # usar coalesce para mostrar 0 en vez de null
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, [desde, hasta])
+        rows = cursor.fetchall()
+        columns = [col[0] for col in cursor.description]
+        results = []
+        for row in rows:
+            row_dict = {}
+            for idx, col in enumerate(columns):
+                row_dict[col] = row[idx]
+            results.append(row_dict)
+
+    return Response(results)

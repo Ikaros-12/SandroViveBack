@@ -30,6 +30,8 @@ urlpatterns = [
     re_path(r'^detalle_envio/(?P<pk>[0-9]+)$', views.Detalle_EnvioDetail.as_view()),
     path('get-public-key/', get_public_key),
     # path('login/', login),
+    path('informe/devoluciones-fecha-desde-hasta/', views.informe_devoluciones_fecha_desde_hasta_raw), # para los informes
+    path('informe/menores-ventas-fecha-desde-hasta/', views.informe_menores_ventas_fecha_desde_hasta_raw), # para los informes
     path('verificar-credenciales/', views.verificar_credenciales),
     path('localidad/provincia/<int:provincia_id>/', views.localidades_por_provincia),
 ]
